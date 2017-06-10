@@ -1,0 +1,2 @@
+int getsockopt(int sock, int level, int optname, void* optval, socklen_t* optlen)
+int setsockopt(int sock, int level, int optname, void* optval, socklen_t* optlen)
