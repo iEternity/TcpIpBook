@@ -1,57 +1,57 @@
-#include<stdio.h>
-#include<stdlib.h>
 #include<unistd.h>
+#include<stdlib.h>
+#include<stdio.h>
 #include<string.h>
-#include<arpa/inet.h>
 #include<sys/socket.h>
+#include<arpa/inet.h>
 
-char message[] = "Hello World!";
-void error_handling(const char* message){
-    fputs(message, stderr);
-    fputc('\n', stderr);
-    exit(1);
-}
+void errorHandling(const char* message);
 
-int main(int argc, char* argv[])
-{
-    int serv_sock,clnt_sock;
-    struct sockaddr_in servAddr, clntAddr;
-    socklen_t clntAddrSize;
-
-    if(argc!=2){
-        printf("Usage:%s <port>\n",argv[0]);
+int main(int argc, char* argv[]){
+    if(argc != 2){
+        printf("Usage: %s <port> \n", argv[1]);
         exit(1);
     }
 
-    serv_sock = socket(PF_INET, SOCK_STREAM, 0);
-    if(serv_sock == -1){
-        error_handling("socket() error!");
+    int sockServ = socket(PF_INET, SOCK_STREAM, 0);
+
+    struct sockaddr_in sockServAddr;
+    memset(&sockServAddr, 0, sizeof(sockServAddr));
+    sockServAddr.sin_family = AF_INET;
+    sockServAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    sockServAddr.sin_port = htons(atoi(argv[1]));
+
+    if(bind(sockServ, (struct sockaddr*)& sockServAddr, sizeof(sockServAddr)) ==-1){
+        errorHandling("bind() error!");
     }
 
-    memset(&servAddr, 0, sizeof(servAddr));
-    servAddr.sin_addr.s_addr    = htonl(INADDR_ANY);
-    servAddr.sin_family         = AF_INET;
-    servAddr.sin_port           = htons(atoi(argv[1]));
-
-    if(bind(serv_sock,  (struct sockaddr*)&servAddr, sizeof(servAddr)) == -1){
-        error_handling("bind() error!");
-    }
-    
-    if(listen(serv_sock,5) == -1){
-        error_handling("listen() error!");
+    if(listen(sockServ, 5) == -1){
+        errorHandling("listen() error!");
     }
 
-    clntAddrSize = sizeof(clntAddr);
-    clnt_sock = accept(serv_sock, (struct sockaddr*)&clntAddr,&clntAddrSize);
-    if(clnt_sock == -1){
-        error_handling("accept() error!");
+    struct sockaddr_in sockClientAddr;
+    socklen_t clientAddrLen = sizeof(sockClientAddr);
+
+    int sockClient = accept(sockServ, (struct sockaddr*)& sockClientAddr, &clientAddrLen);
+    if(sockClient == -1){
+        errorHandling("accept() error!");
+    }
+    else{
+        puts("New Client connected...");
     }
 
-    for(int i=0;i<5;i++){
-        write(clnt_sock, message, sizeof(message));
-    }
-    
-    close(clnt_sock);
-    close(serv_sock);
+    char message[] = "Hello World!";
+
+    write(sockClient, message, strlen(message));
+
+    close(sockClient);
+    close(sockServ);
+
     return 0;
+}
+
+void errorHandling(const char* message){
+    fputs(message, stderr);
+    fputc('\n', stderr);
+    exit(1);
 }

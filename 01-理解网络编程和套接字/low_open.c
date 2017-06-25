@@ -1,26 +1,31 @@
+#include<unistd.h>
 #include<stdio.h>
 #include<stdlib.h>
-#include<unistd.h>
 #include<fcntl.h>
+#include<string.h>
 
-void error_handling(const char* message){
-    fputs(message, stderr);
-    fputc('\n',stderr);
-    exit(1);
-}
+void errorHandling(const char* message);
 
-int main(int argc, char* argv[]){
-    int fd = open("data.txt",O_CREAT|O_WRONLY|O_TRUNC);
+int main(){
+    char message[] = "I love tcp-ip programming!";
+
+    int fd = open("data.txt", O_CREAT|O_TRUNC|O_RDWR);
     if(fd == -1){
-        error_handling("open() error!");
+        errorHandling("open() error!");
     }
-    printf("file descriptor:%d\n", fd);
+    printf("file descriptor: %d \n", fd);
 
-    char buf[]="I love Linux!";
-    if(write(fd, buf, sizeof(buf)) == -1){
-        error_handling("write() error!");
+    int len = write(fd, message, strlen(message));
+    if(len == -1){
+        errorHandling("write() error!");
     }
 
     close(fd);
     return 0;
+}
+
+void errorHandling(const char* message){
+    fputs(message, stderr);
+    fputc('\n', stderr);
+    exit(1);
 }
