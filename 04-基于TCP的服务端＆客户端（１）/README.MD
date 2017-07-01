@@ -1,10 +1,37 @@
-st=>start: Start
-op=>operation: Your Operation
-sub=>subroutine: My Subroutine
-cond=>condition: Yes or No?
-io=>inputoutput: catch something...
-e=>end: End
+# 理解TCP和ＵＤＰ
+## TCP/IP协议栈
+![](https://ooo.0o0.ooo/2017/06/28/5953bb020f227.png)
+## 链路层
+> 链路层是物理连接领域标准化的结果。若两台主机通过网络进行数据交换，则需要路由器之间的连接，链路层就负责这些标准。
+## IP层
+> IP层是为了解决在复杂网络中进行数据传输，进行路径选择的问题。由于每次传输数据的路径选择不一致，所以当数据发生错误时无法解决，因此IP协议无法应对数据错误。
+## TCP/UDP层
+> TCP和UDP以IP层提供的路径信息为基础，进行实际的数据传输，故该层又称为传输层。TCP传输数据过程中，对方收到数据包后会回复确认数据包，如果超时没有回复确认数据包则会超时重传。
+## 应用层
+> 上述内容是套接字通信过程中自动处理的。选择数据路径和数据确认过程都是隐藏到套接字内部。应用层协议就是根据程序特点制定客户端和服务端的通信规则，网络编程的大部分内容就是设计并实现应用层协议。
 
-st->op->cond
-cond(yes)->io->e
-cond(no)->sub(right)->op
+# 实现基于TCP的服务器端/客户端
+## 进入等待连接请求状态
+```
+#include<sys/socket.h>
+
+int listen(int sock, int backlog);
+//成功时返回０，失败时返回-1
+```
+- sock:希望进入等待连接请求状态的套接字，该套接字成为服务端套接字
+- backlog:连接请求等待队列的长度，若为５则表示最多有五个连接请求进入等待队列
+## 受理客户端连接请求
+```
+#include<sys/socket.h>
+
+int accept(int sock, struct sockaddr* addr, socklen_t* addrlen);
+//成功时返回创建的套接字，失败时返回-1
+```
+## 客户端发起连接请求
+```
+int connect(int sock, struct sockaddr* addr, socklen_t* addrlen);
+//成功时返回0，失败时返回-1
+```
+> 客户端调用connect函数后只有在以下情况之一才会返回：<br>
+- 服务端接受连接请求
+- 发生网络中断等异常情况
